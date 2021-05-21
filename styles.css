@@ -95,14 +95,14 @@ a:hover {
 .button:hover, .button:focus, .button:active {
   background-color: var(--blue);
 }
-input, select, dat#list {
+input, select, datalist {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
   appearance: none;
   border: none;
   color: inherit; background-color: inherit;
-  width: 100%; height: auto;
+  width: 100%; min-width: unset; height: auto;
   margin: auto; padding: .25em .75em;
 }
 .header {
@@ -112,21 +112,27 @@ input, select, dat#list {
   border-radius: .25em;
   background-color: var(--blue);
 }
-#search {
-  display: flex;
+.header > div {
+  display: inline-flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   width: 80%; min-width: 100px; max-width: 300px;
-  padding: .25em .75em; margin: 0 auto;
+  padding: .25em; padding-left: .75em; margin: .25em;
   font-size: 1.1em;
   border: .125em solid transparent;
   border-radius: .25em;
   color: var(--white); background-color: var(--content);
   transition: all .3s ease;
 }
-#search:hover, #search:focus, #search:active {
+.header > div:hover, .header > div:focus, .header > div:active {
   border-color: var(--white);
+}
+.header > div > .inputs {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 #list {
  #list-style-type: none;
@@ -181,13 +187,14 @@ input, select, dat#list {
   top: 0; left: 0;  bottom: 0; right: 0;
   z-index: 10000;
   background-color: rgba(0, 0, 0, .5);
+  padding: .75em;
   overflow: hidden;
   display: none;
 }
 .modal {
   position: relative;
-  height: 95vh; width: 95vw;
-  margin: 2.5vh auto; padding: .75em;
+  height: 100%; width: 100%;
+  margin: auto; padding: .75em;
   border-radius: .25em;
   overflow: hidden;
   background-color: var(--content);
@@ -205,7 +212,7 @@ input, select, dat#list {
 .picture.shadow {
   bottom: .5em; right: .5em; top: auto; left: auto;
   background-color: transparent;
-  width: 600px; height: calc(600px / 16 * 9);
+  width: 25em; height: calc(25em / 16 * 9);
   max-width: calc(100% - 1em); max-height: calc(100% - 1em);
   border-radius: .25em;
   overflow: hidden;
