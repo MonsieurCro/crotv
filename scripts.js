@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-  var player = document.getElementById('player');
+  var videoPlayer = document.getElementById('player');
   var languageFilter = $('input#language');
   var countryFilter = $('input#country');
   try {
@@ -14,7 +14,7 @@ $(document).ready(function() {
 
   if (Hls.isSupported()) {
     var hls = new Hls();
-  } else if (!videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+  } else if (!videovideoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
     alert('Sorry, but Live Streaming feature is not supported on this browser.');
     $('#list .card').css({'pointer-events':'none'});
   };
@@ -77,8 +77,10 @@ $(document).ready(function() {
     $('.card').click( function() {
       currentChannel = $(this);
       currentSource = $(currentChannel).data('source');
+
       $('.modal .header').html($(currentChannel).data('name'));
       loadHlsStream(currentSource);
+      $('#pop').show();
 
       $('.active').removeClass('active');
       $(currentChannel).addClass('active');
@@ -87,28 +89,21 @@ $(document).ready(function() {
 
   // Load/stop stream
   function loadHlsStream(stream) {
-    /*https://github.com/video-dev/hls.js/blob/master/docs/API.md*/
     if (Hls.isSupported()) {
       hls.loadSource(stream);
-      hls.attachMedia(player);
+      hls.attachMedia(videoPlayer);
     }
-    else if (player.canPlayType('application/vnd.apple.mpegurl')) {
-      player.src = stream;
+    else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+      videoPlayer.src = stream;
     };
-
-    $('#pop').show();
   };
   function unloadHlsStream() {
     if (Hls.isSupported()) {
       hls.detachMedia();
     }
-    else if (player.canPlayType('application/vnd.apple.mpegurl')) {
-      player.src = '';
+    else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+      videoPlayer.src = '';
     };
-
-    currentChannel = undefined; currentSource = undefined;
-    $('.active').removeClass('active');
-    $(pop).removeClass('picture').hide();
   };
 
 
@@ -135,6 +130,7 @@ $(document).ready(function() {
 
   // Buttons
   $('#reload').click( function() {
+    unloadHlsStream();
     loadHlsStream(currentSource);
   });
 
@@ -147,6 +143,8 @@ $(document).ready(function() {
     var modal = $(this).parents('#pop');
     if ($(pop).hasClass('picture')) {
       unloadHlsStream();
+      $('.active').removeClass('active');
+      $(pop).removeClass('picture').hide();
     } else {
       $(pop).addClass('picture');
     }
