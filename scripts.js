@@ -3,10 +3,16 @@ $(document).ready(function() {
   var videoPlayer = document.getElementById('player');
   var languageFilter = $('input#language');
   var countryFilter = $('input#country');
+  var categoryFilter = $('input#category');
   try {
     languageFilter.val(localStorage.getItem('crotv_language', language));
     countryFilter.val(localStorage.getItem('crotv_country', country));
+    categoryFilter.val(localStorage.getItem('crotv_category', category));
   } catch (e) { console.log(e); };
+
+  if (languageFilter.val() == '' && countryFilter.val() == '' && categoryFilter.val() == '') {
+    languageFilter.val('(fra) French');
+  };
 
   var channelsList = [];
   var currentChannel = undefined;
@@ -45,16 +51,21 @@ $(document).ready(function() {
     try {
       localStorage.setItem('crotv_language', languageFilter.val());
       localStorage.setItem('crotv_country', countryFilter.val());
+      localStorage.setItem('crotv_category', categoryFilter.val());
     } catch (e) { console.log(e); };
 
     var language = languageFilter.val().split(' ')[0].replace(/\(|\)/g, '');
     var country = countryFilter.val().split(' ')[0].replace(/\(|\)/g, '');
+    var category = categoryFilter.val();
 
     if (language != '') {
       filteredList = filteredList.filter(i => i.languages.find(l => l.code == language));
     };
     if (country != '') {
       filteredList = filteredList.filter(i => i.countries.find(c => c.code == country));
+    };
+    if (category != '') {
+      filteredList = filteredList.filter(i => i.category == category);
     };
     renderList(filteredList);
   }
@@ -110,7 +121,7 @@ $(document).ready(function() {
 
 
   // Filter
-  $('input#language, input#country').on('change paste keyup', function() {
+  $('input#language, input#country, input#category').on('change paste keyup blur', function() {
     filterList(channelsList);
   });
 
@@ -136,7 +147,7 @@ $(document).ready(function() {
 
   $('#bigview').click( function() {
     var modal = $(this).parents('#pop');
-    $(pop).addClass('picture');
+    $(pop).removeClass('picture');
   });
 
   $('#close').click( function() {
