@@ -147,7 +147,7 @@ input, select, datalist {
   align-items: center;
   margin: .25em; padding: .75em;
   border-radius: .25em;
-  width: 10em; height: 10em;
+  width: 10em; height: 5em; /*10em;*/
   vertical-align: top;
   text-align: center;
   cursor: pointer;
