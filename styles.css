@@ -135,12 +135,12 @@ input, select, datalist {
   align-items: center;
   width: calc(100% - 1em);
 }
-#list {
- #list-style-type: none;
+.list {
+  list-style-type: none;
   margin: auto; padding: .75em;
   text-align: center;
 }
-#list .card {
+.list .card {
   display: inline-flex;
   flex-direction: column;
   justify-content: center;
@@ -152,15 +152,27 @@ input, select, datalist {
   text-align: center;
   cursor: pointer;
   overflow: hidden;
+  position: relative;
   color: var(--white); background-color: var(--content);
   transition: all .3s ease;
 }
-#list .card:hover {
+.list .card:hover {
   background-color: var(--blue);
 }
-#list .card.active {
+.list .card.active {
   pointer-events: none;
   background-color: grey;
+}
+.card .favorite {
+  position: absolute;
+  top:  .375em; right: .375em; bottom:  auto; left:  auto;
+  width:  .85em; height:  .85em;
+  fill: var(--white);
+  transition: all .3s ease;
+}
+#favorites .card .favorite {
+  background-color:  var(--blue);
+  border-radius:  .125em;
 }
 .card .logo {
   width: 100%; height: calc(100% - 2em);
@@ -243,7 +255,7 @@ input, select, datalist {
   .mobile {
     display: block !important;
   }
-  #list .card {
+  .list .card {
     display: flex;
     width: 100%; height: auto;
   }
