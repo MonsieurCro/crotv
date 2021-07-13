@@ -1,15 +1,11 @@
 $(document).ready(function() {
   const videoPlayer = document.getElementById('player');
-  const popModal = $('#pop');
-  const favoritesContainer = $('ul#favorites');
-  const channelsContainer = $('ul#channels');
-  const languageFilter = $('input#language');
-  const countryFilter = $('input#country');
-  const categoryFilter = $('input#category');
-  const searchQuery = $('input#query');
-  const languagesData = $('datalist#languages');
-  const countriesData = $('datalist#countries');
-  const categoriesData = $('datalist#categories');
+  const favoritesContainer = $('#favorites');
+  const channelsContainer = $('#channels');
+  const searchQuery = $('#query');
+  const languagesData = $('#languages');
+  const countriesData = $('#countries');
+  const categoriesData = $('#categories');
 
   var channelsList = [];
   var languagesList = [];
@@ -17,43 +13,41 @@ $(document).ready(function() {
   var categoriesList = [];
   var favoritesList = [];
 
-  try {
-    languageFilter.val(localStorage.getItem('crotv_language', language));
-    countryFilter.val(localStorage.getItem('crotv_country', country));
-    categoryFilter.val(localStorage.getItem('crotv_category', category));
-    if (localStorage.getItem('crotv_favorites', favorites)) { favoritesList = JSON.parse(localStorage.getItem('crotv_favorites', favorites)) };
-  } catch (e) { console.log(e); };
-
-  var currentLanguage = languageFilter.val();
-  var currentCountry = countryFilter.val();
-  var currentCategory = categoryFilter.val();
+  var currentLanguages = ['fra'];
+  var currentCountries = [];
+  var currentCategories = [];
   var currentChannel = undefined;
   var currentSource = undefined;
+
+  try {
+    if (localStorage.getItem('crotv_languages')) { currentLanguages = JSON.parse(localStorage.getItem('crotv_languages')) };
+    if (localStorage.getItem('crotv_countries')) { currentCountries = JSON.parse(localStorage.getItem('crotv_countries')) };
+    if (localStorage.getItem('crotv_categories')) { currentCategories = JSON.parse(localStorage.getItem('crotv_categories')) };
+    if (localStorage.getItem('crotv_favorites')) { favoritesList = JSON.parse(localStorage.getItem('crotv_favorites')) };
+  } catch (e) { console.log(e); };
 
   if (Hls.isSupported()) {
     var hls = new Hls();
   } else if (!videovideoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-    alert('Sorry, but Live Streaming feature is not supported on this browser.');
+    $(body).html('Sorry, but Live Streaming feature is not supported on this browser.');
     $('#channels .card').css({'pointer-events':'none'});
   };
-  //if ('wakeLock' in navigator) {
-    var wakeLock = null;
-    const requestWakeLock = async () => {
-      try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { console.log(e); };
-    };
- // };
+
+  var wakeLock = null;
+  const requestWakeLock = async () => {
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { console.log(e); };
+  };
 
   fetchList('https://iptv-org.github.io/iptv/channels.json');
-
-
 
   // Fetch list
   function fetchList(source) {
     fetch(source)
     .then(response => response.text())
     .then((data) => {
-      //console.log('Success:', data);
+      //console.log('Fetched!', data);
       channelsList = JSON.parse(data);
+      renderFilters(channelsList);
       renderFavorites(channelsList);
       filterList(channelsList);
     })
@@ -61,58 +55,105 @@ $(document).ready(function() {
       console.error('Error:', error);
     });
   };
-
   // Filter list
   function filterList(list) {
-    let filteredList = list;
+    let filteredList = [];
 
-    if (currentLanguage != '') { filteredList = filteredList.filter(i => i.languages.find(l => l.code == currentLanguage)); };
-    if (currentCountry != '') { filteredList = filteredList.filter(i => i.countries.find(c => c.code == currentCountry)); };
-    if (currentCategory != '') { filteredList = filteredList.filter(i => i.category == currentCategory); };
+    if (currentLanguages.length > 0 || currentCountries.length > 0 || currentCategories.length > 0) {
+      if (currentLanguages.length > 0) {
+        $.each(currentLanguages, function(i, item) {
+          let tempList1 = list.filter(i => i.languages.find(l => l.code == item));
+          $.each(tempList1, function(i, item) {
+            if (filteredList.indexOf(item) === -1) { filteredList.push(item); };
+          });
+        });
+      };
+      if (currentCountries.length > 0) {
+        $.each(currentCountries, function(i, item) {
+          let tempList2 = list.filter(i => i.countries.find(c => c.code == currentCountries));
+          $.each(tempList2, function(i, item) {
+            if (filteredList.indexOf(item) === -1) { filteredList.push(item); };
+          });
+        });
+      };
+      if (currentCategories.length > 0) {
+        $.each(currentCategories, function(i, item) {
+          let tempList3 = list.filter(i => i.category == currentCategories);
+          $.each(tempList3, function(i, item) {
+            if (filteredList.indexOf(item) === -1) { filteredList.push(item); };
+          });
+        });
+      };
+    } else { filteredList = list; };
 
     renderList(filteredList);
-    renderFilters(filteredList);
     $(searchQuery).attr('placeholder', `Search among ${(filteredList).length} channels…`);
   };
+  // Render filters
+  function renderFilters(list) {
+    languagesList = []; countriesList = []; categoriesList = [];
+    $(languagesData, countriesData, categoriesData).html('');
 
+    $.each(list, function(i, item) {
+      if (item.languages && item.languages.length > 0 && languagesList.indexOf(item.languages[0].code.toLowerCase()) === -1) { languagesList.push(item.languages[0].code.toLowerCase()) };
+      if (item.countries && item.countries.length > 0 && countriesList.indexOf(item.countries[0].code.toLowerCase()) === -1) { countriesList.push(item.countries[0].code.toLowerCase()) };
+      if (item.category && item.category != null && categoriesList.indexOf(item.category.toLowerCase()) === -1) { categoriesList.push(item.category.toLowerCase()) };
+    });
+
+    languagesList.sort( function(a, b) { return (languages[a] < languages[b]) ? -1 : (languages[a] > languages[b]) ? 1 : 0; });
+    countriesList.sort( function(a, b) { return (countries[a] < countries[b]) ? -1 : (countries[a] > countries[b]) ? 1 : 0; });
+    categoriesList.sort( function(a, b) { return (categories[a] < categories[b]) ? -1 : (categories[a] > categories[b]) ? 1 : 0; });
+
+    $.each(languagesList, function(i, item) { renderItem(item, languages, currentLanguages, languagesData); });
+    $.each(countriesList, function(i, item) { renderItem(item, countries, currentCountries, countriesData); });
+    $.each(categoriesList, function(i, item) { renderItem(item, categories, currentCategories, categoriesData); });
+  };
+  // Render item
+  function renderItem(item, label, current, target) {
+    let active = (current.indexOf(item) > -1) ? 'checked' : '';
+    $(target).append('<div class="item" id="' + item + '"><input type="checkbox" name="' + item + '"' + active + '><label for="' + item + '">' + (label[item] || item) + '</label></div>');
+  }
   // Render list
   function renderList(list) {
     $(channelsContainer).html('');
-    $.each(list, function(i, item) {
-      renderCard(item, channelsContainer);
-    });
+    $.each(list, function(i, item) { renderCard(item, channelsContainer); });
+    $('.card').first().addClass('selected');
   };
-
   // Render card
   function renderCard(card, container) {
     if (card && card.url !== undefined) {
       $(container).append([
-        '<li class="card" data-id="' + (card.tvg.id || 'no_id') + '" data-name="' + (card.tvg.name || 'no_name') + '" data-source="' + card.url + '" title="' + (card.tvg.name || 'no_name') + '">',
-          '<span class="favorite"></span>',
-          //'<div class="logo desktop"><img src="' + card.logo + '" alt="' + (card.name || './assets/default.png') + '"></div>',
+        '<li class="card" data-id="' + (card.tvg.id || 'no_id') + '" data-source="' + card.url + '" title="' + (card.tvg.name || 'no_name') + '">',
+          //'<div class="logo"><img src="' + (card.logo || './assets/default.png') + '" alt="' + (card.tvg.name || 'no_name') + '"></div>',
           '<p class="name">' + (card.tvg.name || 'no_name') + '</p>',
         '</li>'
       ].join(''));
     };
   };
-
-  // Render Filters
-  function renderFilters(list) {
-    languagesList = []; countriesList = []; categoriesList = [];
-    $(languagesData).html(''); $(countriesData).html(''); $(categoriesData).html('');
-
-    $.each(list, function(i, item) {
-      if (item.languages && item.languages.length > 0 && languagesList.indexOf(item.languages[0].code) === -1) { languagesList.push(item.languages[0].code) };
-      if (item.countries && item.countries.length > 0 && countriesList.indexOf(item.countries[0].code) === -1) { countriesList.push(item.countries[0].code) };
-      if (item.category && item.category != null && categoriesList.indexOf(item.category) === -1) { categoriesList.push(item.category) };
+  // Render favorites
+  function renderFavorites(list) {
+    $(favoritesContainer).html('');
+    $.each(favoritesList, function(i, item) {
+      let card = list.filter(l => l.tvg.id == item)[0];
+      renderCard(card, favoritesContainer);
     });
-
-    $.each(languagesList, function(i, item) { $(languagesData).append('<option value="' + item + '"></option>'); });
-    $.each(countriesList, function(i, item) { $(countriesData).append('<option value="' + item + '"></option>'); });
-    $.each(categoriesList, function(i, item) { $(categoriesData).append('<option value="' + item + '"></option>'); });
   };
 
+  // Search
+  $(searchQuery).on('change paste keyup blur', function() {
+    let cards = $(channelsContainer).children('.card');
+    let search = $(this).val().toLowerCase();
 
+    $.each(cards, function(i, item) {
+      try {
+        if (JSON.stringify($(item).data('id')).toLowerCase().indexOf(search) > -1) {
+          $(item).css({'display':''});
+        } else {
+          $(item).css({'display':'none'});
+        };
+      } catch (e) { console.log(e); };
+    });
+  });
 
   // Load/stop stream
   function loadHlsStream(stream) {
@@ -141,11 +182,83 @@ $(document).ready(function() {
     };
   };
 
+  // Update Filters
+  $('#filters .header span').click( function() {
+    $('.active').removeClass('active');
+    $(this).addClass('active');
+    let category = $(this).data('id');
+    $('#filters .category').addClass('hidden');
+    $('#' + category).removeClass('hidden');
+  });
+  $(document).on('click', '#languages .item', function() {
+    updateFilters($(this), $(this).attr('id'), currentLanguages, languagesList, 'crotv_languages');
+  });
+  $(document).on('click', '#countries .item', function() {
+    updateFilters($(this), $(this).attr('id'), currentCountries, countriesList, 'crotv_countries');
+  });
+  $(document).on('click', '#categories .item', function() {
+    updateFilters($(this), $(this).attr('id'), currentCategories, categoriesList, 'crotv_categories');
+  });
+  function updateFilters(item, id, current, list, storage) {
+    if (list.indexOf(id) > -1) {
+      if (current.indexOf(id) > -1) {
+        current = current.filter( function(item) { return item != id; });
+        $(item).children('input[type="checkbox"]').prop('checked', false);
+      } else {
+        current.push(id);
+        $(item).children('input[type="checkbox"]').prop('checked', true);
+      };
+      try { localStorage.setItem(storage, JSON.stringify(current)); } catch (e) { console.log(e); };
+      filterList(channelsList);
+    };
+  };
 
+  // Toggle Modal
+  $('#search').click( function() {
+    $('#query').removeClass('hidden').select().focus();
+    $('#query').blur(function() { if ($(this).val().length === 0) { $(this).addClass('hidden'); }} );
+  });
+  $('#settings').click( function() {
+    $('#filters').removeClass('hidden').find('input').first().select().focus();
+  });
+  $(document).on('click', '.list .card', function() {
+    currentChannel = $(this);
+    currentSource = $(currentChannel).data('source');
 
-  // Add/remove favorite
+    loadHlsStream(currentSource);
+    $('#stream').data('id', currentChannel.data('id')).removeClass('hidden');
+
+    $('.selected').removeClass('selected');
+    $(currentChannel).addClass('selected');
+  });
+  $('.modal .close').click( function() {
+    $(this).parents('.shadow').addClass('hidden');
+  });
+
+  // Buttons
+  $('#save').click( function() {
+    let channelId = $('#stream').data('id');
+    setFavorite(channelId);
+  });
+  $('#reload').click( function() {
+    unloadHlsStream();
+    loadHlsStream(currentSource);
+  });
+  $('#unload').click( function() {
+    unloadHlsStream();
+    $('#stream').addClass('hidden');
+  });
+  var fade = null;
+  $('#player').on('mousemove', function() {
+    $('#controls').removeClass('hidden');
+    clearTimeout(fade);
+    fade = window.setTimeout(function() {
+      $('#controls').addClass('hidden');
+    }, 5000);
+  });
+
+  // Updates favorites
   function setFavorite(channel) {
-    console.log(favoritesList)
     if (favoritesList.indexOf(channel) > -1) {
       favoritesList = favoritesList.filter( function(item) { return item != channel; });
     } else {
@@ -154,102 +267,59 @@ $(document).ready(function() {
     renderFavorites(channelsList);
     try { localStorage.setItem('crotv_favorites', JSON.stringify(favoritesList)); } catch (e) { console.log(e); };
   };
-  // Render favorites
-  function renderFavorites(list) {
-    $(favoritesContainer).html('');
-    $.each(favoritesList, function(i, item) {
-      let card = list.filter(l => l.tvg.id == item)[0];
-      renderCard(card, favoritesContainer);
-    });
-  };
 
+  // Keys navigation
+  $(document).keydown( function(e) {
+    let selected = $('.selected');
+    let list = $(selected).parents('.list');
 
-
-  // Filter
-  $(languageFilter).on('change paste keyup blur', function() {
-    if ($(this).val() != currentLanguage && (languagesList.indexOf($(this).val()) > -1 || $(this).val() == '')) {
-      currentLanguage = languageFilter.val();
-      try { localStorage.setItem('crotv_language', currentLanguage); } catch (e) { console.log(e); };
-      filterList(channelsList);
-    };
-  });
-
-  $(countryFilter).on('change paste keyup blur', function() {
-    if ($(this).val() != currentCountry && (countriesList.indexOf($(this).val()) > -1 || $(this).val() == '')) {
-      currentCountry = countryFilter.val();
-      try { localStorage.setItem('crotv_country', currentCountry); } catch (e) { console.log(e); };
-      filterList(channelsList);
-    };
-  });
-
-  $(categoryFilter).on('change paste keyup blur', function() {
-    if ($(this).val() != currentCategory && (categoriesList.indexOf($(this).val()) > -1 || $(this).val() == '')) {
-      currentCategory = categoryFilter.val();
-      try { localStorage.setItem('crotv_category', currentCategory); } catch (e) { console.log(e); };
-      filterList(channelsList);
-    };
-  });
-
-  // Search
-  $(searchQuery).on('change paste keyup blur', function() {
-    let cards = $(channelsContainer).children('.card');
-    let search = $(this).val().toLowerCase();
-
-    $.each(cards, function(i, item) {
-      if ($(this).children('.name').text().toLowerCase().indexOf(search) > -1) {
-        $(this).css({'display':''});
+    switch (e.keyCode) {
+      case 37: //left
+        if ($(selected).prev('li').length > 0) {
+          $(selected).prev('li').addClass('selected');
+        } else {
+          $(selected).siblings('li').last().addClass('selected');
+        };
+        $(selected).removeClass('selected');
+        break;
+      case 39: //right
+        if ($(selected).next('li').length > 0) {
+          $(selected).next('li').addClass('selected');
+        } else {
+          $(selected).siblings('li').first().addClass('selected');
+        };
+        $(selected).removeClass('selected');
+        break;
+      case 38: //up
+      if ($(list).parents('.section').prev().find('.list').length > 0) {
+        $(list).parents('.section').prev().find('.list').children('.card').first().addClass('selected');
       } else {
-        $(this).css({'display':'none'});
+        $('.section').last().find('.list').children('.card').first().addClass('selected');
       };
-    });
-  });
-
-
-
-  // Listen clicks ([data-id="' + card.tvg.id + '"])
-  $(document).on('click', '.card', function() {
-    currentChannel = $(this);
-    currentSource = $(currentChannel).data('source');
-
-    $('.modal .header').html($(currentChannel).data('name'));
-    $('.modal .header').data('id', $(currentChannel).data('id'));
-    loadHlsStream(currentSource);
-    $(popModal).show();
-
-    $('.active').removeClass('active');
-    $(currentChannel).addClass('active');
-  });
-
-  $(document).on('click', '.card > .favorite', function(e) {
-    e.stopPropagation();
-    let channelId = $(this).parents('.card').data('id');
-    setFavorite(channelId);
-  });
-
-
-
-  // Buttons
-  $('#favorite').click( function() {
-    let channelId = $('.modal .header').data('id');
-    setFavorite(channelId);
-  });
-
-  $('#reload').click( function() {
-    unloadHlsStream();
-    loadHlsStream(currentSource);
-  });
-
-  $('#bigview').click( function() {
-    $(popModal).removeClass('picture');
-  });
-
-  $('#close').click( function() {
-    if ($(popModal).hasClass('picture')) {
-      unloadHlsStream();
-      $('.active').removeClass('active');
-      $(popModal).removeClass('picture').hide();
-    } else {
-      $(popModal).addClass('picture');
+      $(selected).removeClass('selected');
+        break;
+      case 40: //down
+        if ($(list).parents('.section').next().find('.list').length > 0) {
+          $(list).parents('.section').next().find('.list').children('.card').first().addClass('selected');
+        } else {
+          $('.section').first().find('.list').children('.card').first().addClass('selected');
+        };
+        $(selected).removeClass('selected');
+        break;
+      case 13: //enter
+        if ($('#filters').hasClass('hidden')) {
+          currentChannel = $('.selected');
+          currentSource = $(currentChannel).data('source');
+          loadHlsStream(currentSource);
+          $('#stream').removeClass('hidden');
+        };
+        break;
+        case 27: //esc
+          unloadHlsStream();
+          $('#stream').addClass('hidden');
+          break;
+      default:
+        //console.log('Not an control key.');
     };
   });
 });
