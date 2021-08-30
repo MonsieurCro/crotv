@@ -13,7 +13,7 @@ $(document).ready(function() {
   var categoriesList = [];
   var favoritesList = [];
 
-  var currentLanguages = ['fra'];
+  var currentLanguages = ['eng','fra'];
   var currentCountries = [];
   var currentCategories = [];
   var currentChannel = undefined;
@@ -30,7 +30,6 @@ $(document).ready(function() {
     var hls = new Hls();
   } else if (!videovideoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
     $(body).html('Sorry, but Live Streaming feature is not supported on this browser.');
-    $('#channels .card').css({'pointer-events':'none'});
   };
 
   var wakeLock = null;
@@ -160,9 +159,11 @@ $(document).ready(function() {
     if (Hls.isSupported()) {
       hls.loadSource(stream);
       hls.attachMedia(videoPlayer);
+      //videoPlayer.requestFullscreen();
     }
     else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
       videoPlayer.src = stream;
+      //videoPlayer.requestFullscreen();
     };
     if ('wakeLock' in navigator) {
       requestWakeLock();
@@ -184,25 +185,25 @@ $(document).ready(function() {
 
   // Update Filters
   $('#filters .header span').click( function() {
-    $('.active').removeClass('active');
-    $(this).addClass('active');
     let category = $(this).data('id');
+    $('#filters .active').removeClass('active');
+    $(this).addClass('active');
     $('#filters .category').addClass('hidden');
     $('#' + category).removeClass('hidden');
   });
   $(document).on('click', '#languages .item', function() {
-    updateFilters($(this), $(this).attr('id'), currentLanguages, languagesList, 'crotv_languages');
+    currentLanguages = updateFilters($(this), $(this).attr('id'), currentLanguages, languagesList, 'crotv_languages');
   });
   $(document).on('click', '#countries .item', function() {
-    updateFilters($(this), $(this).attr('id'), currentCountries, countriesList, 'crotv_countries');
+    currentCountries = updateFilters($(this), $(this).attr('id'), currentCountries, countriesList, 'crotv_countries');
   });
   $(document).on('click', '#categories .item', function() {
-    updateFilters($(this), $(this).attr('id'), currentCategories, categoriesList, 'crotv_categories');
+    currentCategories = updateFilters($(this), $(this).attr('id'), currentCategories, categoriesList, 'crotv_categories');
   });
   function updateFilters(item, id, current, list, storage) {
     if (list.indexOf(id) > -1) {
       if (current.indexOf(id) > -1) {
-        current = current.filter( function(item) { return item != id; });
+        current = current.filter( function(i) { return i != id; });
         $(item).children('input[type="checkbox"]').prop('checked', false);
       } else {
         current.push(id);
@@ -211,6 +212,7 @@ $(document).ready(function() {
       try { localStorage.setItem(storage, JSON.stringify(current)); } catch (e) { console.log(e); };
       filterList(channelsList);
     };
+    return current;
   };
 
   // Toggle Modal
@@ -219,7 +221,7 @@ $(document).ready(function() {
     $('#query').blur(function() { if ($(this).val().length === 0) { $(this).addClass('hidden'); }} );
   });
   $('#settings').click( function() {
-    $('#filters').removeClass('hidden').find('input').first().select().focus();
+    $('#filters').removeClass('hidden');
   });
   $(document).on('click', '.list .card', function() {
     currentChannel = $(this);
