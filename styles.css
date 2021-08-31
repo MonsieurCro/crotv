@@ -216,7 +216,8 @@ input, select, datalist {
 .list {
   list-style-type: none;
   margin: auto 0 auto -.75em; padding: .5em;
-  width: 100%; min-width: max-content;
+  width: 100%; /*min-width: max-content;*/
+  text-align: center;
 }
 .list .card {
   display: inline-flex;
@@ -226,7 +227,9 @@ input, select, datalist {
   margin: .25em; padding: .75em;
   border: .125em solid transparent;
   border-radius: .25em;
-  width: 15em; height: 7.5em;
+  /*width: 15em; height: 7.5em;*/
+  width: 20vw; height: 10vw;
+  max-width: 15em; max-height: 7.5em;
   vertical-align: top;
   text-align: center;
   cursor: pointer;
@@ -271,9 +274,15 @@ input, select, datalist {
   font-size: 2em; line-height: .5em;
 }
 #about {
-  position: absolute;
+  position: fixed;
   left: 0; bottom: 0; right: 0; top: auto;
   width: 100%; height: auto;
+}
+#about > p {
+  display: inline-block;
+  color: var(--white); background-color: var(--background);
+  padding: .5em 1em;
+  border-radius: .125em;
 }
 @media screen and (max-width: 900px){
   html {

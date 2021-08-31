@@ -156,14 +156,38 @@ $(document).ready(function() {
 
   // Load/stop stream
   function loadHlsStream(stream) {
+    // https://github.com/video-dev/hls.js/blob/master/docs/API.md#first-step-setup-and-support
     if (Hls.isSupported()) {
-      hls.loadSource(stream);
-      hls.attachMedia(videoPlayer);
-      //videoPlayer.requestFullscreen();
-    }
-    else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+      try {
+        hls.loadSource(stream);
+        hls.attachMedia(videoPlayer);
+        videoPlayer.play();
+        videoPlayer.requestFullscreen();
+
+        // Error handling
+        hls.on(Hls.Events.ERROR, function (event, data) {
+          if (data.fatal) {
+            /*switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.log('Fatal network error encountered, trying to recover…');
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.log('Fatal media error encountered, trying to recover…');
+                hls.recoverMediaError();
+                break;
+              default:*/
+                console.log('Sorry, we didn\'t manage to recover that stream.');
+                hls.detachMedia();
+                $('#stream').addClass('hidden');
+                /*break;
+            }*/
+          }
+        });
+      } catch (e) { console.log(e); }
+    } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
       videoPlayer.src = stream;
-      //videoPlayer.requestFullscreen();
+      videoPlayer.requestFullscreen();
     };
     if ('wakeLock' in navigator) {
       requestWakeLock();
@@ -179,7 +203,7 @@ $(document).ready(function() {
     if ('wakeLock' in navigator) {
       try {
         wakeLock.release().then(() => { wakeLock = null; });
-      } catch (e) { console.log(e); };
+      } catch (e) { console.log(e); }
     };
   };
 
