@@ -279,10 +279,13 @@ input, select, datalist {
   width: 100%; height: auto;
 }
 #about > p {
-  display: inline-block;
+  display: table;
   color: var(--white); background-color: var(--background);
   padding: .5em 1em;
   border-radius: .125em;
+}
+#about > p#message {
+  background-color: var(--accent);
 }
 @media screen and (max-width: 900px){
   html {

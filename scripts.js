@@ -1,4 +1,5 @@
 $(document).ready(function() {
+  const messages = $('#message');
   const videoPlayer = document.getElementById('player');
   const favoritesContainer = $('#favorites');
   const channelsContainer = $('#channels');
@@ -162,32 +163,33 @@ $(document).ready(function() {
         hls.loadSource(stream);
         hls.attachMedia(videoPlayer);
         videoPlayer.play();
-        videoPlayer.requestFullscreen();
+        //videoPlayer.requestFullscreen();
 
         // Error handling
         hls.on(Hls.Events.ERROR, function (event, data) {
           if (data.fatal) {
-            /*switch (data.type) {
+            switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
-                console.log('Fatal network error encountered, trying to recover…');
+                messages.html('Fatal network error encountered, trying to recover…');
                 hls.startLoad();
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
-                console.log('Fatal media error encountered, trying to recover…');
+                messages.html('Fatal media error encountered, trying to recover…');
                 hls.recoverMediaError();
                 break;
-              default:*/
-                console.log('Sorry, we didn\'t manage to recover that stream.');
+              default:
+                messages.html('Sorry, we didn\'t manage to recover that stream.').removeClass('hidden');
                 hls.detachMedia();
                 $('#stream').addClass('hidden');
-                /*break;
-            }*/
+                break;
+            }
+            setTimeout(function() { messages.html('').addClass('hidden'); }, 2500);
           }
         });
       } catch (e) { console.log(e); }
     } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
       videoPlayer.src = stream;
-      videoPlayer.requestFullscreen();
+      //videoPlayer.requestFullscreen();
     };
     if ('wakeLock' in navigator) {
       requestWakeLock();
